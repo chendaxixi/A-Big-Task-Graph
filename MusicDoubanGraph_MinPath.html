@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+</head>
+<body bgcolor="black">
+<title>MusicDoubanGraph</title>
+<table>
+<tr>
+<td></td>
+<td bgcolor="white">
+<p><i><b><big>MusicDoubanGraph网络_MinPath</big></b></i></p>
+<p>网络构建如下：</p>
+<p>&nbsp&nbsp母图G：MusicDoubanGraph网络_完整版</p>
+<p>&nbsp&nbsp边E：显示选中节点到其余点的最短路径</p>
+<p>&nbsp&nbsp变化规则：只保留度大于20的结点</p>
+<p>&nbsp&nbsp|V|=79</p>
+<p>&nbsp&nbsp|E|=1731</p>
+<p>&nbsp&nbspps:鼠标停留在点上以查看音乐人信息</p>
+<p>&nbsp&nbsp   被选中顶点会加粗</p>
+<p>&nbsp&nbsp   顶点原色按到选中点最短路径的(点)长度分布</p>
+<p>&nbsp&nbsp   单击鼠标以选中顶点</p>
+</td>
+</tr>
+</table>
+<script src="d3.js"></script>
+<script src="MusicDoubanGraph_MinPath.js"></script>
+<script>
+
+
+var width = 1024,
+    height = 600;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-1000)
+	.friction(0.85)
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("td").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+	
+	
+  var node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 5)
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag);
+	
+  var _links = [];		
+  (function(){
+	var i = 0;
+	var length = graph.minpath.length;
+	while(graph.minpath[i].epath.split(' ')[0] != String("0"))
+		i++;
+	while(graph.minpath[i].path.split(' ')[0] == String("0"))
+	{
+		var str = graph.minpath[i].epath.split(' ');
+		for(var j = 1;j < str.length - 1;j++)
+			_links.push(graph.links[parseInt(str[j])]);
+		var str_ = graph.minpath[i].path.split(' ');
+		for(var j = 1;j < str_.length - 1;j++)
+			d3.select(node[0][parseInt(str_[j])]).style("fill", color((node[0][0].__data__.group+j) % 20 + 1));
+		i++;
+		if(i == length) break;
+	}
+	d3.select(node[0][0]).attr("r", 10);
+  }())
+  
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start(); 
+
+  var link = svg.selectAll(".link")
+      .data(_links)
+    .enter().append("line")
+      .attr("class", "link")
+		.style("stroke-width", "3px");
+	
+	  
+	svg.selectAll(".node").on("mousedown",
+		 function(event){
+	  svg.selectAll(".link").remove();
+	  svg.selectAll(".node").attr("r", 5).style("fill", function(d){return color(d.group);});
+	_links = [];
+	var i = 0;
+	var length = graph.minpath.length;
+	while(graph.minpath[i].epath.split(' ')[0] != String(event.index))
+		i++;
+	while(graph.minpath[i].path.split(' ')[0] == String(event.index))
+	{
+		var str = graph.minpath[i].epath.split(' ');
+		for(var j = 1;j < str.length - 1;j++)
+			_links.push(graph.links[parseInt(str[j])]);
+		var str_ = graph.minpath[i].path.split(' ');
+		for(var j = 1;j < str_.length - 1;j++)
+			d3.select(node[0][parseInt(str_[j])]).style("fill", color((event.group+j) % 20 + 1));
+		i++;
+		if(i == length) break;
+	}
+	d3.select(node[0][event.index]).attr("r", 10);
+	
+	link = svg.selectAll(".link")
+      .data(_links)
+    .enter().append("line")
+      .attr("class", "link")
+		.style("stroke-width", "3px");
+		
+	console.log(event);
+	console.log(link);
+	  });
+	  
+  node.append("title")
+      .text(function(d) { return d.name; });
+	  
+   force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; }); 
+  }); 
+ 
+</script>
+</body>
+</html>

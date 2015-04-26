@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+</style>
+</head>
+<body bgcolor="black">
+<title>MusicDoubanGraph</title>
+<table>
+<tr>
+<td></td>
+<td bgcolor="white">
+<p><i><b><big>MusicDoubanGraph网络完整版</big></b></i></p>
+<p>网络构建如下：</p>
+<p>&nbsp&nbsp点i：(台湾)音乐人</p>
+<p>&nbsp&nbsp边e(vi,vj):音乐人i与音乐人j有一定的相似度(粉丝有一定的重合度，具体含义见文档)</p>
+<p>&nbsp&nbsp|V|=999</p>
+<p>&nbsp&nbsp|E|=6737</p>
+<p>&nbsp&nbspps:鼠标停留在点上以查看音乐人信息</p>
+</td>
+</tr>
+</table>
+<script src="d3.js"></script>
+<script src="MusicDoubanGraph_all.js"></script>
+<script>
+
+
+var width = 1024,
+    height = 600;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+    .charge(-120)
+	.friction(0.5)
+    .linkDistance(30)
+    .size([width, height]);
+
+var svg = d3.select("td").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+	
+
+
+  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .start();
+
+  var link = svg.selectAll(".link")
+      .data(graph.links)
+    .enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", "1px");
+
+  var node = svg.selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 5)
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag);
+
+  node.append("title")
+      .text(function(d) { return d.name; });
+	  
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  }); 
+ 
+</script>
+</body>
+</html>
